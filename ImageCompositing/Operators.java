@@ -20,13 +20,13 @@ public class Operators {
     float[] range2S = {0.5f, 0.52f,  0.8f,  0.85f};
     float[] range2B = {0.4f,  0.45f, 0.71f, 0.75f};*/
     
-    static float[][] rangesA = {{0.33f, 0.4f, 0.5f, 0.56f},
-								{0.42f, 0.55f,  0.7f,  0.82f},
-								{0.38f,  0.50f, 0.82f, 0.95f}};
+    static float[][] rangesA = {{0.33f, 0.4f, 0.5f, 0.56f},		//H Green
+								{0.42f, 0.55f,  0.7f,  0.82f},	//S
+								{0.38f,  0.50f, 0.82f, 0.95f}};	//B
     
-    static float[][] rangesB = {{0.80f, 0.85f, 0.93f, 0.97f},
-								{0.25f, 0.4f,  0.58f,  0.75f},
-								{0.55f,  0.68f, 0.95f, 1f}};
+    static float[][] rangesB = {{0.80f, 0.85f, 0.93f, 0.97f},	//H	Magenta
+								{0.25f, 0.4f,  0.58f,  0.75f},	//S
+								{0.55f,  0.68f, 0.95f, 1f}};	//B
 	
 	
 	
@@ -301,41 +301,41 @@ public class Operators {
         Color_Space_Converter color_Space_Converter = new Color_Space_Converter();
         Color_Space_Converter.ColorSpaceConverter colorSpaceConverter = color_Space_Converter.new ColorSpaceConverter();
         
-        //create variables to store LAB values of each pixel in both pictures, and calculate mean + SD.
+        //create variables to store XYZ values of each pixel in both pictures, and calculate mean + SD.
         double[] L_imgA = new double[width*height];
         double[] A_imgA = new double[width*height];
         double[] B_imgA = new double[width*height];
         double[] L_imgB = new double[width*height];
         double[] A_imgB = new double[width*height];
         double[] B_imgB = new double[width*height];
-        double mean_L_imgA, sd_L_imgA, mean_A_imgA, sd_A_imgA, mean_B_imgA, sd_B_imgA;
-        double mean_L_imgB, sd_L_imgB, mean_A_imgB, sd_A_imgB, mean_B_imgB, sd_B_imgB;
+        double mean_X_imgA, sd_X_imgA, mean_Y_imgA, sd_Y_imgA, mean_Z_imgA, sd_Z_imgA;
+        double mean_X_imgB, sd_X_imgB, mean_Y_imgB, sd_Y_imgB, mean_Z_imgB, sd_Z_imgB;
         int count = 0;
         
-        //Get color values of all pixels of imgA + imgB, using LAB color format
+        //Get color values of all pixels of imgA + imgB, using XYZ color format
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
             	
             	int rgbA = imgA.getRGB(i, j);
             	int rgbB = imgB.getRGB(i, j);
             	
-            	//Convert RGB to LAB
-            	double[] labA = colorSpaceConverter.RGBtoLAB(getRed(rgbA), getGreen(rgbA), getBlue(rgbA));
-            	double[] labB = colorSpaceConverter.RGBtoLAB(getRed(rgbB), getGreen(rgbB), getBlue(rgbB));
+            	//Convert RGB to XYZ
+            	double[] XYZA = colorSpaceConverter.RGBtoXYZ(getRed(rgbA), getGreen(rgbA), getBlue(rgbA));
+            	double[] XYZB = colorSpaceConverter.RGBtoXYZ(getRed(rgbB), getGreen(rgbB), getBlue(rgbB));
             	
             	//Store Values
-            	L_imgA[count] = labA[0];	A_imgA[count] = labA[1]; 	B_imgA[count] = labA[2];
-            	L_imgB[count] = labB[0]; 	A_imgB[count] = labB[1]; 	B_imgB[count] = labB[2];
+            	L_imgA[count] = XYZA[0];	A_imgA[count] = XYZA[1]; 	B_imgA[count] = XYZA[2];
+            	L_imgB[count] = XYZB[0]; 	A_imgB[count] = XYZB[1]; 	B_imgB[count] = XYZB[2];
     			count++;
             }
         }
         
         //Analyze Color of imgA + imgB: Calculate Mean & SD for channels l,a,b
-        mean_L_imgA = mean(L_imgA); mean_A_imgA = mean(A_imgA); mean_B_imgA = mean(B_imgA);
-        sd_L_imgA = calculateSD(L_imgA); sd_A_imgA = calculateSD(A_imgA); sd_B_imgA = calculateSD(B_imgA);
+        mean_X_imgA = mean(L_imgA); mean_Y_imgA = mean(A_imgA); mean_Z_imgA = mean(B_imgA);
+        sd_X_imgA = calculateSD(L_imgA); sd_Y_imgA = calculateSD(A_imgA); sd_Z_imgA = calculateSD(B_imgA);
         
-        mean_L_imgB = mean(L_imgB); mean_A_imgB = mean(A_imgB); mean_B_imgB = mean(B_imgB);
-        sd_L_imgB = calculateSD(L_imgB); sd_A_imgB = calculateSD(A_imgB); sd_B_imgB = calculateSD(B_imgB);
+        mean_X_imgB = mean(L_imgB); mean_Y_imgB = mean(A_imgB); mean_Z_imgB = mean(B_imgB);
+        sd_X_imgB = calculateSD(L_imgB); sd_Y_imgB = calculateSD(A_imgB); sd_Z_imgB = calculateSD(B_imgB);
         
         //Copy Color Pofile from Image A to B
         for (int i = 0; i < width; i++) {
@@ -344,21 +344,21 @@ public class Operators {
             	int rgbA = imgA.getRGB(i, j);
             	int rgbB = imgB.getRGB(i, j);
 
-            	//Convert RGB to LAB
-            	double[] labA = colorSpaceConverter.RGBtoLAB(getRed(rgbA), getGreen(rgbA), getBlue(rgbA));
-            	double[] labB = colorSpaceConverter.RGBtoLAB(getRed(rgbB), getGreen(rgbB), getBlue(rgbB));
+            	//Convert RGB to XYZ
+            	double[] XYZA = colorSpaceConverter.RGBtoXYZ(getRed(rgbA), getGreen(rgbA), getBlue(rgbA));
+            	double[] XYZB = colorSpaceConverter.RGBtoXYZ(getRed(rgbB), getGreen(rgbB), getBlue(rgbB));
             	
-            	//Offset LAB value: valueB - meanB * SDa / SDb
-            	double lOffset = (labB[0]-mean_L_imgB)*(sd_L_imgA/sd_L_imgB);
-            	double aOffset = (labB[1]-mean_A_imgB)*(sd_A_imgA/sd_A_imgB);
-            	double bOffset = (labB[2]-mean_B_imgB)*(sd_B_imgA/sd_B_imgB);
+            	//Offset XYZ value: valueB - meanB * SDa / SDb
+            	double lOffset = (XYZB[0]-mean_X_imgB)*(sd_X_imgA/sd_X_imgB);
+            	double aOffset = (XYZB[1]-mean_Y_imgB)*(sd_Y_imgA/sd_Y_imgB);
+            	double bOffset = (XYZB[2]-mean_Z_imgB)*(sd_Z_imgA/sd_Z_imgB);
             	
-            	//adjust LAB value by offset
-            	labB[0] = mean_L_imgB+lOffset;
-            	labB[1] = mean_A_imgB+aOffset;
-            	labB[2] = mean_B_imgB+bOffset;
+            	//adjust XYZ value by offset
+            	XYZB[0] = mean_X_imgB+lOffset;
+            	XYZB[1] = mean_Y_imgB+aOffset;
+            	XYZB[2] = mean_Z_imgB+bOffset;
             	
-            	int rgbOut[] = colorSpaceConverter.LABtoRGB(labB);
+            	int rgbOut[] = colorSpaceConverter.XYZtoRGB(XYZB);
             	outImg.setRGB(i, j, new Color(clipChannelValue(rgbOut[0]), clipChannelValue(rgbOut[1]), clipChannelValue(rgbOut[2])).getRGB());
             }
         }
@@ -393,6 +393,7 @@ public class Operators {
     	return (x-a)/(b-a) * (d-c) + c;
     }
     
+    //Source: https://stackoverflow.com/questions/4191687/how-to-calculate-mean-median-mode-and-range-from-a-set-of-numbers
     public static double mean(double[] m) {
         double sum = 0;
         for (int i = 0; i < m.length; i++) {
@@ -401,6 +402,7 @@ public class Operators {
         return sum / m.length;
     }
     
+    //Source: https://www.programiz.com/java-programming/examples/standard-deviation
     public static double calculateSD(double numArray[])
     {
         double sum = 0.0, standardDeviation = 0.0;
