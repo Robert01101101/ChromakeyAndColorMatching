@@ -24,7 +24,7 @@ public class Operators {
 								{0.42f, 0.55f,  0.7f,  0.82f},
 								{0.38f,  0.50f, 0.82f, 0.95f}};
     
-    static float[][] rangesB = {{0.80f, 0.85f, 0.93f, 0.97f},
+    static float[][] rangesB = {{0.80f, 0.85f, 0.94f, 0.97f},
 								{0.25f, 0.4f,  0.58f,  0.75f},
 								{0.55f,  0.68f, 0.95f, 1f}};
 	
