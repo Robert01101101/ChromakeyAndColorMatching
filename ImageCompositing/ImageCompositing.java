@@ -15,18 +15,17 @@ import java.io.File;
 import javax.imageio.ImageIO;
 
 class ImageCompositing extends Frame {
-    BufferedImage frameAImg;
-    BufferedImage frameBImg;
-    BufferedImage backgroundImg;
-    BufferedImage matteAImg;
-    BufferedImage premultipliedAImg;
-    BufferedImage matteBImg;
-    BufferedImage premultipliedBImg;
-    BufferedImage keymixImg, keymixRaw;
-    BufferedImage premultipliedBlendImg, premultipliedRaw;
-    BufferedImage maxMattesImg, maxMatteErode, maxMatteBlur;
-    BufferedImage blendImg;
-    BufferedImage transferColor, transferColorBlend;
+	//Process Images shown
+    BufferedImage foregroundA, matteA, premultA, compA;
+    BufferedImage foregroundB, matteB, premultB, compB;
+    BufferedImage background;
+    BufferedImage matteMax, matteErode, matteBlur;
+    BufferedImage premultAB, blendAB, compAB;
+    BufferedImage colorTransferAB;
+    BufferedImage finalOutput;
+    //Not shown as process images
+    BufferedImage colorTransferABpremult;
+    
     
     int width; // width of the image
     int height; // height of the image
@@ -38,9 +37,9 @@ class ImageCompositing extends Frame {
         // Get an image from the specified file in the current directory on the
         // local hard disk.
         try {
-        	frameAImg = ImageIO.read(new File("frameA.jpg"));
-        	frameBImg = ImageIO.read(new File("frameB.jpg"));
-            backgroundImg = ImageIO.read(new File("background.jpg"));
+        	foregroundA = ImageIO.read(new File("frameA.jpg"));
+        	foregroundB = ImageIO.read(new File("frameB.jpg"));
+            background = ImageIO.read(new File("background.jpg"));
 
         } catch (Exception e) {
             System.out.println("Cannot load the provided image");
@@ -48,27 +47,30 @@ class ImageCompositing extends Frame {
         this.setTitle("RobertMichelsA1");
         this.setVisible(true);
 
-        width = backgroundImg.getWidth();
-        height = backgroundImg.getHeight();
+        width = background.getWidth();
+        height = background.getHeight();
 
-        // ======= Create Matte, Premultiplied, Keymix ======== //
+        // ======= Apply Operators to create process images & final image ======== //
 
-        matteAImg = Operators.chromaKey(frameAImg, frameBImg);
-        premultipliedAImg = Operators.generatePremultiplied(frameAImg, matteAImg);
+        matteA = Operators.chromaKey(foregroundA, foregroundB);
+        premultA = Operators.generatePremultiplied(foregroundA, matteA);
+        compA = Operators.generateKeyMix(premultA, background, matteA);
         
-        matteBImg = Operators.chromaKey(frameBImg, frameAImg);
-        premultipliedBImg = Operators.generatePremultiplied(frameBImg, matteBImg);
+        matteB = Operators.chromaKey(foregroundB, foregroundA);
+        premultB = Operators.generatePremultiplied(foregroundB, matteB);
+        compB = Operators.generateKeyMix(premultB, background, matteB);
 
-        blendImg = Operators.blend(frameBImg, frameAImg, .5f);
-        maxMattesImg = Operators.maximum(matteAImg, matteBImg);
-        maxMatteErode = Operators.erode(maxMattesImg);
-        maxMatteBlur = Operators.blur(maxMatteErode);
-        transferColor = Operators.transferColor(backgroundImg, blendImg);
-        transferColorBlend = Operators.blend(transferColor, blendImg, .8f);
-        premultipliedBlendImg = Operators.generatePremultiplied(transferColorBlend, maxMatteBlur);
-        premultipliedRaw = Operators.generatePremultiplied(blendImg, maxMatteBlur);
-        keymixImg = Operators.generateKeyMix(premultipliedBlendImg, backgroundImg, maxMatteBlur);
-        keymixRaw = Operators.generateKeyMix(premultipliedRaw, backgroundImg, maxMatteBlur);
+        matteMax = Operators.maximum(matteA, matteB);
+        matteErode = Operators.erode(matteMax);
+        matteBlur = Operators.blur(matteErode);
+        
+        blendAB = Operators.blend(foregroundB, foregroundA, .5f);
+        premultAB = Operators.generatePremultiplied(blendAB, matteBlur);
+        compAB = Operators.generateKeyMix(premultAB, background, matteBlur);
+        
+        colorTransferAB = Operators.transferColor(background, blendAB);
+        colorTransferABpremult = Operators.generatePremultiplied(colorTransferAB, matteBlur);
+        finalOutput = Operators.generateKeyMix(colorTransferABpremult, background, matteBlur);
         
         // ================================= //
 
@@ -100,39 +102,39 @@ class ImageCompositing extends Frame {
         g.setFont(f1);
         
         //row 1
-        g.drawString("Foreground Image fA", xOffset, yOffset+textOffset);
-        g.drawImage(frameAImg, xOffset, yOffset, width, height, this);
-        g.drawString("Matte Image fA", w+xOffset*2, yOffset+textOffset);
-        g.drawImage(matteAImg, w+xOffset*2, yOffset, width, height, this);
-        g.drawString("Premultiplied Image (p.m.) fA", 75 + w * 2, yOffset+textOffset);
-        g.drawImage(premultipliedAImg, w*2+xOffset*3, yOffset, width, height, this);
+        g.drawString("Foreground A", xOffset, yOffset+textOffset);
+        g.drawImage(foregroundA, xOffset, yOffset, width, height, this);
+        g.drawString("Matte A", w+xOffset*2, yOffset+textOffset);
+        g.drawImage(matteA, w+xOffset*2, yOffset, width, height, this);
+        g.drawString("Premultiplied A", 75 + w * 2, yOffset+textOffset);
+        g.drawImage(premultA, w*2+xOffset*3, yOffset, width, height, this);
 
         //row 2
-        g.drawString("Foreground Image fB", xOffset, h+yOffset*2+textOffset);
-        g.drawImage(frameBImg, xOffset, h+yOffset*2, backgroundImg.getWidth(), backgroundImg.getHeight(), this);
-        g.drawString("Matte Image fB", w+xOffset*2, h+yOffset*2+textOffset);
-        g.drawImage(matteBImg, w+xOffset*2, h+yOffset*2, width, height, this);
-        g.drawString("Premultiplied Image (p.m.) fB", 75 + w * 2, h+yOffset*2+textOffset);
-        g.drawImage(premultipliedBImg, w*2+xOffset*3, h+yOffset*2, width, height, this);
+        g.drawString("Foreground B", xOffset, h+yOffset*2+textOffset);
+        g.drawImage(foregroundB, xOffset, h+yOffset*2, background.getWidth(), background.getHeight(), this);
+        g.drawString("Matte B", w+xOffset*2, h+yOffset*2+textOffset);
+        g.drawImage(matteB, w+xOffset*2, h+yOffset*2, width, height, this);
+        g.drawString("Premultiplied B", 75 + w * 2, h+yOffset*2+textOffset);
+        g.drawImage(premultB, w*2+xOffset*3, h+yOffset*2, width, height, this);
         
         //right column
-        g.drawString("Max. Ma + Mb", w*3+xOffset*7, h/2+yOffset*2+textOffset);
-        g.drawImage(maxMattesImg, w*3+xOffset*7, h/2+yOffset*2, backgroundImg.getWidth(), backgroundImg.getHeight(), this);
-        g.drawString("Blend Image fB + fA", w*4+xOffset*8, h/2+yOffset*2+textOffset);
-        g.drawImage(blendImg, w*4+xOffset*8, h/2+yOffset*2, backgroundImg.getWidth(), backgroundImg.getHeight(), this);
-        g.drawString("Keymix w/o color t.", w*5+xOffset*9, h/2+yOffset*2+textOffset);
-        g.drawImage(keymixRaw, w*5+xOffset*9, h/2+yOffset*2, backgroundImg.getWidth(), backgroundImg.getHeight(), this);
-        g.drawString("Keymix: AB(p.m.) + Mmax + B", w*6+xOffset*10, h/2+yOffset*2+textOffset);
-        g.drawImage(keymixImg, w*6+xOffset*10, h/2+yOffset*2, backgroundImg.getWidth(), backgroundImg.getHeight(), this);
+        g.drawString("Matte Max", w*3+xOffset*7, h/2+yOffset*2+textOffset);
+        g.drawImage(matteMax, w*3+xOffset*7, h/2+yOffset*2, background.getWidth(), background.getHeight(), this);
+        g.drawString("Blend AB", w*4+xOffset*8, h/2+yOffset*2+textOffset);
+        g.drawImage(blendAB, w*4+xOffset*8, h/2+yOffset*2, background.getWidth(), background.getHeight(), this);
+        //g.drawString("Keymix w/o color t.", w*5+xOffset*9, h/2+yOffset*2+textOffset);
+        //g.drawImage(keymixRaw, w*5+xOffset*9, h/2+yOffset*2, background.getWidth(), background.getHeight(), this);
+        g.drawString("Final Output", w*6+xOffset*10, h/2+yOffset*2+textOffset);
+        g.drawImage(finalOutput, w*6+xOffset*10, h/2+yOffset*2, background.getWidth(), background.getHeight(), this);
         
         g.drawString("Matte erosion", w*3+xOffset*7,(int)(h*1.7f+yOffset*2+textOffset));
-        g.drawImage(maxMatteErode, w*3+xOffset*7, (int)(1.7f*h+yOffset*2), backgroundImg.getWidth(), backgroundImg.getHeight(), this);
+        g.drawImage(matteErode, w*3+xOffset*7, (int)(1.7f*h+yOffset*2), background.getWidth(), background.getHeight(), this);
         g.drawString("Matte blur", w*4+xOffset*8,(int)(h*1.7f+yOffset*2+textOffset));
-        g.drawImage(maxMatteBlur, w*4+xOffset*8, (int)(1.7f*h+yOffset*2), backgroundImg.getWidth(), backgroundImg.getHeight(), this);
-        g.drawString("Background Image", w*5+xOffset*9,(int)(h*1.7f+yOffset*2+textOffset));
-        g.drawImage(backgroundImg, w*5+xOffset*9, (int)(1.7f*h+yOffset*2), backgroundImg.getWidth(), backgroundImg.getHeight(), this);
-        g.drawString("Color Transfer A -> B", w*6+xOffset*10,(int)(h*1.7f+yOffset*2+textOffset));
-        g.drawImage(transferColor, w*6+xOffset*10, (int)(1.7f*h+yOffset*2), backgroundImg.getWidth(), backgroundImg.getHeight(), this);
+        g.drawImage(matteBlur, w*4+xOffset*8, (int)(1.7f*h+yOffset*2), background.getWidth(), background.getHeight(), this);
+        g.drawString("Background", w*5+xOffset*9,(int)(h*1.7f+yOffset*2+textOffset));
+        g.drawImage(background, w*5+xOffset*9, (int)(1.7f*h+yOffset*2), background.getWidth(), background.getHeight(), this);
+        g.drawString("Color Transfer AB", w*6+xOffset*10,(int)(h*1.7f+yOffset*2+textOffset));
+        g.drawImage(colorTransferAB, w*6+xOffset*10, (int)(1.7f*h+yOffset*2), background.getWidth(), background.getHeight(), this);
         
     }
     
