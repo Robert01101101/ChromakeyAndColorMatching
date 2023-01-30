@@ -2,6 +2,10 @@
 
 [Project Page](https://rmichels.com/chromakeyAndColorMatching)
 
+[Download executable](https://rmichels.com/assets/other/ChromakeyAndColorMatching.exe)
+
+https://rmichels.com/assets/other/ChromakeyAndColorMatching.exe
+
 ![Screenshot](https://rmichels.com/assets/img/chromakeyAndColorMatching.jpg "Screenshot")
 
 ![Overview of the image processor](https://rmichels.com/assets/img/chromakeyAndColorMatching/overview.jpg "Overview of the image processor")
